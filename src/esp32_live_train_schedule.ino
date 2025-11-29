@@ -4,14 +4,17 @@
 #include <LiquidCrystal_I2C.h>
 #include "time.h"
 #include "config.h"
+#include "Wifi_Connection.h"
+
+WiFiConnection wifiConn;
 
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 
-// Connection monitoring
+/* // Connection monitoring
 unsigned long lastCheck = 0;
 const long checkInterval = 30000; // 30 seconds
 int connectionAttempts = 0;
-const int maxAttempts = 5;
+const int maxAttempts = 5; */
 
 // Train monitoring
 const long trainCheckInterval = 20000;
@@ -36,7 +39,11 @@ void setup()
 
   Serial.println("=== ESP32 Long-Term WiFi Connection ===");
   pinMode(LED_BUILTIN, OUTPUT);
-  setupWiFi();
+  wifiConn.setupWiFi(
+      ssid,
+      password,
+      connectionAttempts,
+      maxAttempts);
 
   // init and get time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -45,13 +52,18 @@ void setup()
 
 void loop()
 {
-  maintainWiFi();
+  wifiConn.maintainWiFi(
+      ssid,
+      password,
+      connectionAttempts,
+      maxAttempts,
+      checkInterval);
   getStationDepartures("900093201");
   printLCDMessages();
   delay(1000);
 }
 
-void setupWiFi()
+/* void setupWiFi()
 {
   Serial.println();
   Serial.println("Initializing WiFi...");
@@ -65,9 +77,9 @@ void setupWiFi()
   WiFi.setHostname("esp32-transport");
 
   connectToWiFi();
-}
+} */
 
-void connectToWiFi()
+/* void connectToWiFi()
 {
   if (connectionAttempts >= maxAttempts)
   {
@@ -113,9 +125,9 @@ void connectToWiFi()
     Serial.println("WiFi connection failed");
     Serial.println("Will retry in main loop...");
   }
-}
+} */
 
-void maintainWiFi()
+/* void maintainWiFi()
 {
   unsigned long currentMillis = millis();
 
@@ -143,7 +155,7 @@ void maintainWiFi()
       break;
     }
   }
-}
+} */
 
 void printLCDMessages()
 {
@@ -157,7 +169,7 @@ void printLCDMessages()
   lcd.print(lcdMessage4);
 }
 
-void printConnectionDetails()
+/* void printConnectionDetails()
 {
   Serial.println("=== Connection Details ===");
   Serial.print("IP Address: ");
@@ -168,7 +180,7 @@ void printConnectionDetails()
   Serial.print("Hostname: ");
   Serial.println(WiFi.getHostname());
   Serial.println("==========================");
-}
+} */
 
 void parseDepartures(String jsonResponse)
 {

@@ -5,25 +5,19 @@
 #include "time.h"
 #include "config.h"
 #include "Wifi_Connection.h"
+#include "Station_Info.h"
 
 WiFiConnection wifiConn;
 
-LiquidCrystal_I2C lcd(0x27, 20, 4);
+StationInfo statInf;
 
-/* // Connection monitoring
-unsigned long lastCheck = 0;
-const long checkInterval = 30000; // 30 seconds
-int connectionAttempts = 0;
-const int maxAttempts = 5; */
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 // Train monitoring
 const long trainCheckInterval = 20000;
 unsigned long trainLastCheck = 0;
-
-// Current Time
-const char *ntpServer = "de.pool.ntp.org";
-const long gmtOffset_sec = 3600;
-const int daylightOffset_sec = 3600;
+unsigned long previousMillis = 0;
+const long UPDATE_INTERVAL = 30000; // 30 seconds
 
 String lcdMessage1 = "first";
 String lcdMessage2 = "message";
@@ -58,104 +52,45 @@ void loop()
       connectionAttempts,
       maxAttempts,
       checkInterval);
-  getStationDepartures("900093201");
+  getStationDepartures("900093201"); // S Waidmannslust: 900094101, S Hermsdorf: 900093201
   printLCDMessages();
   delay(1000);
-}
-
-/* void setupWiFi()
-{
-  Serial.println();
-  Serial.println("Initializing WiFi...");
-
-  // WiFi configuration for stability
-  WiFi.mode(WIFI_STA);
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
-
-  // Set hostname for identification
-  WiFi.setHostname("esp32-transport");
-
-  connectToWiFi();
-} */
-
-/* void connectToWiFi()
-{
-  if (connectionAttempts >= maxAttempts)
-  {
-    Serial.println("Too many connection attempts. Restarting ESP32...");
-    ESP.restart();
-  }
-
-  Serial.print("Connection attempt ");
-  Serial.print(connectionAttempts + 1);
-  Serial.print("/");
-  Serial.print(maxAttempts);
-  Serial.println(" to WiFi...");
-
-  WiFi.disconnect();
-  delay(1000);
-  WiFi.begin(ssid, password);
-
-  unsigned long startTime = millis();
-  bool connected = false;
-
-  while (millis() - startTime < 15000)
-  { // 15 second timeout
-    if (WiFi.status() == WL_CONNECTED)
-    {
-      connected = true;
-      break;
-    }
-    delay(500);
-    Serial.print(".");
-  }
-
-  if (connected)
-  {
-    connectionAttempts = 0; // Reset counter on success
-    Serial.println();
-    Serial.println("WiFi connected successfully!");
-    printConnectionDetails();
-  }
-  else
-  {
-    connectionAttempts++;
-    Serial.println();
-    Serial.println("WiFi connection failed");
-    Serial.println("Will retry in main loop...");
-  }
-} */
-
-/* void maintainWiFi()
-{
   unsigned long currentMillis = millis();
 
-  if (currentMillis - lastCheck >= checkInterval)
+  if (currentMillis - previousMillis >= UPDATE_INTERVAL)
   {
-    lastCheck = currentMillis;
+    previousMillis = currentMillis;
 
-    switch (WiFi.status())
+    // Get departures
+    DepartureList departures = statInf.getSouthboundJourneys(fromStation, toStation);
+
+    // Print to serial monitor
+    Serial.println("\n=== Updated Departures ===");
+    Serial.print("Current time: ");
+
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo))
     {
-    case WL_CONNECTED:
-      // Connection is good
-      Serial.print("✓ WiFi stable - RSSI: ");
-      Serial.println(WiFi.RSSI());
-      break;
-
-    case WL_CONNECTION_LOST:
-    case WL_DISCONNECTED:
-      Serial.println("⚠ WiFi connection lost. Reconnecting...");
-      connectToWiFi();
-      break;
-
-    default:
-      Serial.println("WiFi not connected. Attempting reconnect...");
-      connectToWiFi();
-      break;
+      Serial.println(&timeinfo, "%H:%M:%S");
     }
+
+    Serial.println("Next journeys:");
+
+    for (int i = 0; i < departures.count; i++)
+    {
+      Serial.print(i + 1);
+      Serial.print(". ");
+      Serial.println(departures.departures[i]);
+    }
+
+    if (departures.count == 0)
+    {
+      Serial.println("No departures found");
+    }
+
+    Serial.println("========================");
   }
-} */
+}
 
 void printLCDMessages()
 {
@@ -168,19 +103,6 @@ void printLCDMessages()
   lcd.setCursor(0, 3);
   lcd.print(lcdMessage4);
 }
-
-/* void printConnectionDetails()
-{
-  Serial.println("=== Connection Details ===");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Signal Strength: ");
-  Serial.print(WiFi.RSSI());
-  Serial.println(" dBm");
-  Serial.print("Hostname: ");
-  Serial.println(WiFi.getHostname());
-  Serial.println("==========================");
-} */
 
 void parseDepartures(String jsonResponse)
 {

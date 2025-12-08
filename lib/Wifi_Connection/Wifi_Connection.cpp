@@ -48,7 +48,7 @@ void WiFiConnection::connectToWiFi(
     Serial.println(" to WiFi...");
 
     WiFi.disconnect();
-    delay(1000);
+    delay(100);
     WiFi.begin(ssid, password);
 
     unsigned long startTime = millis();
@@ -70,7 +70,7 @@ void WiFiConnection::connectToWiFi(
         connectionAttempts = 0; // Reset counter on success
         Serial.println();
         Serial.println("WiFi connected successfully!");
-        printConnectionDetails();
+        // printConnectionDetails();
     }
     else
     {

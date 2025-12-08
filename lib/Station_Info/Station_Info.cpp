@@ -5,13 +5,13 @@
 #include "config.h"
 #include "time.h"
 
-DepartureList StationInfo::getSouthboundJourneys(const char *fromStation, const char *toStation)
+DepartureList StationInfo::getSouthboundJourneys(String fromStation, String toStation)
 {
     HTTPClient http;
 
     String url = "https://v6.bvg.transport.rest/journeys?";
-    url += "from=" + String(fromStation);
-    url += "&to=" + String(toStation);
+    url += "from=" + fromStation;
+    url += "&to=" + toStation;
     url += "&results=4"; // Match array size
 
     http.begin(url);
@@ -69,14 +69,12 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
         JsonObject firstLeg = legs[0];
 
-        // Extract journey data (different structure!)
         String lineName = firstLeg["line"]["name"] | "Unknown";
         String direction = firstLeg["direction"] | "Unknown";
         const char *depTime = firstLeg["plannedDeparture"] | firstLeg["departure"];
         if (!depTime)
             continue;
 
-        // Time calculation (same as before)
         struct tm departure_tm = {0};
         sscanf(depTime, "%d-%d-%dT%d:%d:%d",
                &departure_tm.tm_year, &departure_tm.tm_mon, &departure_tm.tm_mday,
@@ -97,13 +95,13 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
             result.count++;
 
             // Debug print
-            Serial.print("Journey " + lineName + " to " + direction + ": ");
+            /* Serial.print("Journey " + lineName + " to " + direction + ": ");
             if (diff_minutes == 0)
                 Serial.println("NOW");
             else if (diff_minutes == 1)
                 Serial.println("1 min");
             else
-                Serial.printf("%d mins\n", diff_minutes);
+                Serial.printf("%d mins\n", diff_minutes); */
         }
     }
 
@@ -115,25 +113,112 @@ String StationInfo::makeJourneyMessage(String lineName, String direction, int di
     String message = "";
     message += cutString(lineName, 3);
     message += " ";
-    message += cutString(direction, 13);
+    String cleanDirection = cleanStationName(direction);
+    message += cutString(cleanDirection, 13);
     message += " ";
-    message += cutString(String(diffMinutes), 2);
+    String timeDisplay = formatTimeDisplay(diffMinutes);
+    message += cutString(timeDisplay, 2);
     return message;
 }
 
 String StationInfo::cutString(String input, int maxLength)
 {
-    if (input.length() < maxLength)
+    String lengthCheck = input;
+    lengthCheck.replace("ü", "u");
+    lengthCheck.replace("ä", "a");
+    lengthCheck.replace("ö", "o");
+    lengthCheck.replace("Ü", "U");
+    lengthCheck.replace("A", "A");
+    lengthCheck.replace("O", "O");
+    lengthCheck.replace("ß", "s");
+    if (lengthCheck.length() < maxLength)
     {
-        while (input.length() < maxLength)
+        while (lengthCheck.length() < maxLength)
         {
+            lengthCheck += " ";
             input += " ";
         }
         return input;
     }
-    else if (input.length() > maxLength)
+    else if (lengthCheck.length() > maxLength)
     {
-        input = input.substring(0, maxLength);
+        int displayCount = 0;
+        String result = "";
+        for (int i = 0; i < input.length() && displayCount < maxLength; i++)
+        {
+            // Check if current char starts a UTF-8 sequence (specifically umlaute)
+            if (input[i] == 0xC3)
+            {
+
+                result += input[i];
+                result += input[i + 1];
+                i++; // Skip the second byte
+            }
+            else
+            {
+                result += input[i];
+            }
+            displayCount++;
+        }
+        return result;
     }
     return input;
+}
+
+String StationInfo::cleanStationName(String stationName)
+{
+    stationName = removeParentheses(stationName);
+
+    if (stationName.startsWith("S+U "))
+    {
+        return stationName.substring(4);
+    }
+    else if (stationName.startsWith("S ") || stationName.startsWith("U "))
+    {
+        return stationName.substring(2);
+    }
+    return stationName;
+}
+
+String StationInfo::removeParentheses(String input)
+{
+    int start = input.indexOf('(');
+    while (start != -1)
+    {
+        int end = input.indexOf(')', start);
+        if (end != -1)
+        {
+            input.remove(start, end - start + 1);
+        }
+        else
+        {
+            break;
+        }
+        start = input.indexOf('(');
+    }
+    return input;
+}
+
+String StationInfo::formatTimeDisplay(int minutes)
+{
+    if (minutes == 0)
+    {
+        return "JZ";
+    }
+    else if (minutes < 0)
+    {
+        return "??";
+    }
+    else if (minutes >= 100)
+    {
+        return "ZL";
+    }
+    else if (minutes < 10)
+    {
+        return " " + String(minutes);
+    }
+    else
+    {
+        return String(minutes);
+    }
 }

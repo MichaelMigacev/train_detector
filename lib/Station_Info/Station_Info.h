@@ -11,10 +11,15 @@ struct DepartureList
 class StationInfo
 {
 public:
-    DepartureList getSouthboundJourneys(const char *fromStation, const char *toStation);
+    DepartureList getSouthboundJourneys(String fromStation, String toStation);
+    String cutString(String input, int maxLength);
+    String makeJourneyMessage(String lineName, String direction, int diffMinutes);
 
 private:
     DepartureList parseJourneys(String jsonResponse);
-    String makeJourneyMessage(String lineName, String direction, int diffMinutes);
-    String cutString(String input, int maxLength);
+    // String makeJourneyMessage(String lineName, String direction, int diffMinutes);
+    // String cutString(String input, int maxLength);
+    String cleanStationName(String stationName);
+    String removeParentheses(String input);
+    String formatTimeDisplay(int minutes);
 };

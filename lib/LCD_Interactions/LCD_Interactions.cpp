@@ -11,11 +11,6 @@ void LCDInteractions::setupLCD()
 
 void LCDInteractions::printLine(int row, String text)
 {
-    if (text.length() > 20)
-    {
-        text = text.substring(0, 20);
-    }
-
     printWithCustomChars(row, text);
 }
 

@@ -11,3 +11,4 @@ The code was written in platform.io in a VSCode environment, it is configured fo
 ### Additional Features
 
 The code is written to allow your to pick another station of your choice, which will display if you flip a switch make sure you wire the switch to the correct pin or specify your pin in the code
+

@@ -15,5 +15,9 @@ const long gmtOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
 
 // From and To Stations for one Station Trip
-const char *fromStation = "YOUR STATION ID";
-const char *toStation = "YOUR DESTINATION STATION ID (one station over)";
+String fromStation = "INSERT_FROM_STATION_ID";
+String toStation = "INSERT_TO_STATION_ID";
+
+// From and To Stations for one Station Trip for second Station Trip
+String fromStationTwo = "INSERT_FROM_STATION_ID";
+String toStationTwo = "INSERT_TO_STATION_ID";

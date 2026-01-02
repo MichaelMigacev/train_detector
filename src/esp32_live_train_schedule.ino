@@ -20,10 +20,10 @@ unsigned long trainLastCheck = 0;
 unsigned long previousMillis = -30000;
 const long UPDATE_INTERVAL = 30000; // 30 seconds
 
-String lcdMessage1 = "füuuuräsötß";
-String lcdMessage2 = "message";
-String lcdMessage3 = "AAAAA";
-String lcdMessage4 = "ÄÖÜ";
+String lcdMessage1 = "Loading...";
+String lcdMessage2 = "";
+String lcdMessage3 = "";
+String lcdMessage4 = "";
 
 const int LEVER_PIN = 15;
 bool lastLeverState = HIGH;
@@ -83,11 +83,7 @@ void loop()
     DepartureList departures = statInf.getSouthboundJourneys(myStartStation, myEndStation);
     lcdInt.displayDepartures(departures.departures, departures.count);
 
-    // Print to serial monitor
-    Serial.println("\n=== Updated Departures ===");
-    Serial.print("Current time: ");
-
-    struct tm timeinfo;
+    /* struct tm timeinfo;
     if (getLocalTime(&timeinfo))
     {
       Serial.println(&timeinfo, "%H:%M:%S");
@@ -107,13 +103,13 @@ void loop()
       Serial.println("No departures found");
     }
 
-    Serial.println("========================");
+    Serial.println("========================");*/
   }
 
   if (reading != lastLeverState)
   {
     // Small debounce delay
-    delay(50);
+    delay(20);
     reading = digitalRead(LEVER_PIN); // Read again
 
     if (reading != currentLeverState)

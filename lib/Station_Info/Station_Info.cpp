@@ -71,7 +71,7 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
         String lineName = firstLeg["line"]["name"] | "Unknown";
         String direction = firstLeg["direction"] | "Unknown";
-        const char *depTime = firstLeg["plannedDeparture"] | firstLeg["departure"];
+        const char *depTime = firstLeg["departure"] | firstLeg["plannedDeparture"];
         if (!depTime)
             continue;
 

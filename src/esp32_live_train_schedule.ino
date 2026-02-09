@@ -9,34 +9,37 @@
 #include "LCD_Interactions.h"
 
 WiFiConnection wifiConn;
-
 StationInfo statInf;
-
 LCDInteractions lcdInt;
 
 // Train monitoring
-const long trainCheckInterval = 20000;
-unsigned long trainLastCheck = 0;
-unsigned long previousMillis = -30000;
-const long UPDATE_INTERVAL = 30000; // 30 seconds
+const uint32_t trainsUpdateInterval = 20000UL; // 20 seconds
+uint32_t trainLastCheck = 0UL;
+uint32_t previousMillis = 0UL;
+uint32_t currentMillis = 0UL;
 
+// First LCD message while loading
 String lcdMessage1 = "Loading...";
 String lcdMessage2 = "";
 String lcdMessage3 = "";
 String lcdMessage4 = "";
 
-const int LEVER_PIN = 15;
+const uint8_t LEVER_PIN = 15U;
 bool lastLeverState = HIGH;
 bool currentLeverState = HIGH;
 
 String myStartStation = fromStation;
 String myEndStation = toStation;
 
+static constexpr uint8_t DEBOUNCE_DELAY_MS = 20U;
+
 void setup()
 {
   Serial.begin(115200);
 
   lcdInt.setupLCD();
+
+  lcdInt.printLCDMessages(lcdMessage1, lcdMessage2, lcdMessage3, lcdMessage4);
 
   wifiConn.setupWiFi(
       ssid,
@@ -46,7 +49,6 @@ void setup()
 
   // init and get time
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  printLCDMessages();
 
   pinMode(LEVER_PIN, INPUT_PULLUP); // Internal pull-up
 
@@ -61,6 +63,7 @@ void setup()
     myStartStation = fromStation;
     myEndStation = toStation;
   }
+  previousMillis = millis() - trainsUpdateInterval; // Force immediate update
 }
 
 void loop()
@@ -71,45 +74,25 @@ void loop()
       connectionAttempts,
       maxAttempts,
       checkInterval);
-  unsigned long currentMillis = millis();
+
+  currentMillis = millis();
 
   bool reading = digitalRead(LEVER_PIN);
 
-  if (currentMillis - previousMillis >= UPDATE_INTERVAL)
+  if (currentMillis - previousMillis >= trainsUpdateInterval)
   {
     previousMillis = currentMillis;
 
     // Get departures
     DepartureList departures = statInf.getSouthboundJourneys(myStartStation, myEndStation);
     lcdInt.displayDepartures(departures.departures, departures.count);
-
-    /* struct tm timeinfo;
-    if (getLocalTime(&timeinfo))
-    {
-      Serial.println(&timeinfo, "%H:%M:%S");
-    }
-
-    Serial.println("Next journeys:");
-
-    for (int i = 0; i < departures.count; i++)
-    {
-      Serial.print(i + 1);
-      Serial.print(". ");
-      Serial.println(departures.departures[i]);
-    }
-
-    if (departures.count == 0)
-    {
-      Serial.println("No departures found");
-    }
-
-    Serial.println("========================");*/
   }
 
   if (reading != lastLeverState)
   {
     // Small debounce delay
-    delay(20);
+    delay(DEBOUNCE_DELAY_MS);
+
     reading = digitalRead(LEVER_PIN); // Read again
 
     if (reading != currentLeverState)
@@ -130,12 +113,4 @@ void loop()
     }
   }
   lastLeverState = reading;
-}
-
-void printLCDMessages()
-{
-  lcdInt.printLine(0, lcdMessage1);
-  lcdInt.printLine(1, lcdMessage2);
-  lcdInt.printLine(2, lcdMessage3);
-  lcdInt.printLine(3, lcdMessage4);
 }

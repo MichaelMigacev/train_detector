@@ -9,24 +9,24 @@ void LCDInteractions::setupLCD()
     lcd.clear();
 }
 
-void LCDInteractions::printLine(int row, String text)
+void LCDInteractions::printLine(uint8_t row, String text)
 {
     printWithCustomChars(row, text);
 }
 
-void LCDInteractions::clearLine(int row)
+void LCDInteractions::clearLine(uint8_t row)
 {
     lcd.setCursor(0, row);
-    for (int i = 0; i < 20; i++)
+    for (uint8_t i = 0; i < LCD_COLUMNS; i++)
     {
         lcd.print(" ");
     }
     lcd.setCursor(0, row);
 }
 
-void LCDInteractions::displayDepartures(const String departures[], int count)
+void LCDInteractions::displayDepartures(const String departures[], uint8_t count)
 {
-    for (int i = 0; i < 4; i++)
+    for (uint8_t i = 0; i < LCD_ROWS; i++)
     {
         clearLine(i);
         if (i < count)
@@ -36,15 +36,15 @@ void LCDInteractions::displayDepartures(const String departures[], int count)
     }
 }
 
-void LCDInteractions::printWithCustomChars(int row, String text)
+void LCDInteractions::printWithCustomChars(uint8_t row, String text)
 {
     text = replaceUmlauts(text);
 
     lcd.setCursor(0, row);
-    for (int i = 0; i < text.length(); i++)
+    for (uint8_t i = 0; i < text.length(); i++)
     {
         if (text[i] >= 1 && text[i] <= 7)
-        {                             // Check for custom chars 0-3
+        {
             lcd.write(byte(text[i])); // Write custom character
         }
         else
@@ -68,7 +68,6 @@ String LCDInteractions::replaceUmlauts(String input)
 
 void LCDInteractions::createCustomCharacters()
 {
-    // Example custom character (a simple smiley face)
     uint8_t u_umlaut[8] = {
         0b01010,
         0b00000,
@@ -78,7 +77,6 @@ void LCDInteractions::createCustomCharacters()
         0b10011,
         0b01101,
         0b00000};
-    // Char 2: a with dots for ä
     uint8_t a_umlaut[8] = {
         0b01010,
         0b00000,
@@ -88,8 +86,6 @@ void LCDInteractions::createCustomCharacters()
         0b10001,
         0b01111,
         0b00000};
-
-    // Char 3: o with dots for ö
     uint8_t o_umlaut[8] = {
         0b01010,
         0b00000,
@@ -99,8 +95,6 @@ void LCDInteractions::createCustomCharacters()
         0b10001,
         0b01110,
         0b00000};
-
-    // Char 4: o with dots for Ö
     uint8_t o_umlaut_big[8] = {
         0b01010,
         0b01110,
@@ -110,8 +104,6 @@ void LCDInteractions::createCustomCharacters()
         0b10001,
         0b01110,
         0b00000};
-
-    // Char 5: Sharp s for ß
     uint8_t szet[8] = {
         0b01100,
         0b10010,
@@ -121,8 +113,6 @@ void LCDInteractions::createCustomCharacters()
         0b10010,
         0b11100,
         0b10000};
-
-    // Char 6: a with dots for Ä
     uint8_t a_umlaut_big[8] = {
         0b01010,
         0b01110,
@@ -132,7 +122,6 @@ void LCDInteractions::createCustomCharacters()
         0b10001,
         0b10001,
         0b00000};
-
     uint8_t u_umlaut_big[8] = {
         0b01010,
         0b10001,
@@ -147,7 +136,15 @@ void LCDInteractions::createCustomCharacters()
     lcd.createChar(2, a_umlaut);     // ä → 1
     lcd.createChar(3, o_umlaut);     // ö → 2
     lcd.createChar(4, o_umlaut_big); // ö → 2
-    lcd.createChar(5, szet);
+    lcd.createChar(5, szet);         // ß → 5
     lcd.createChar(6, a_umlaut_big); // Ä → 4
     lcd.createChar(7, u_umlaut_big); // Ü → 1
+}
+
+void LCDInteractions::printLCDMessages(String lcdMessage1, String lcdMessage2, String lcdMessage3, String lcdMessage4)
+{
+    printLine(0, lcdMessage1);
+    printLine(1, lcdMessage2);
+    printLine(2, lcdMessage3);
+    printLine(3, lcdMessage4);
 }

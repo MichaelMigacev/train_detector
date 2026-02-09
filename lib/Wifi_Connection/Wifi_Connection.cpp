@@ -3,13 +3,13 @@
 #include "WiFi_Connection.h"
 #include "config.h"
 
-unsigned long lastCheck = 0;
+uint32_t lastCheck = 0UL;
 
 void WiFiConnection::setupWiFi(
     const char *ssid,
     const char *password,
-    int connectionAttempts,
-    int maxAttempts)
+    uint8_t connectionAttempts,
+    uint8_t maxAttempts)
 {
     Serial.println();
     Serial.println("Initializing WiFi...");
@@ -32,8 +32,8 @@ void WiFiConnection::setupWiFi(
 void WiFiConnection::connectToWiFi(
     const char *ssid,
     const char *password,
-    int connectionAttempts,
-    int maxAttempts)
+    uint8_t connectionAttempts,
+    uint8_t maxAttempts)
 {
     if (connectionAttempts >= maxAttempts)
     {
@@ -51,7 +51,7 @@ void WiFiConnection::connectToWiFi(
     delay(100);
     WiFi.begin(ssid, password);
 
-    unsigned long startTime = millis();
+    uint32_t startTime = millis();
     bool connected = false;
 
     while (millis() - startTime < 15000)
@@ -84,11 +84,11 @@ void WiFiConnection::connectToWiFi(
 void WiFiConnection::maintainWiFi(
     const char *ssid,
     const char *password,
-    int connectionAttempts,
-    int maxAttempts,
-    const long checkInterval)
+    uint8_t connectionAttempts,
+    uint8_t maxAttempts,
+    const uint32_t checkInterval)
 {
-    unsigned long currentMillis = millis();
+    uint32_t currentMillis = millis();
 
     if (currentMillis - lastCheck >= checkInterval)
     {

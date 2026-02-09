@@ -12,7 +12,7 @@ DepartureList StationInfo::getSouthboundJourneys(String fromStation, String toSt
     String url = "https://v6.bvg.transport.rest/journeys?";
     url += "from=" + fromStation;
     url += "&to=" + toStation;
-    url += "&results=4"; // Match array size
+    url += "&results=" + QUERY_SIZE; // Match array size
 
     http.begin(url);
     http.addHeader("Accept", "application/json");
@@ -32,7 +32,7 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 {
     DepartureList result = {{}, 0};
 
-    DynamicJsonDocument doc(8192);
+    JsonDocument doc;
     DeserializationError error = deserializeJson(doc, jsonResponse);
 
     if (error)
@@ -59,7 +59,7 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
     for (JsonObject journey : journeys)
     {
-        if (result.count >= 4)
+        if (result.count >= LCD_SIZE_ROWS)
             break; // Max 4 for LCD
 
         // Get the first leg of each journey
@@ -71,7 +71,7 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
         String lineName = firstLeg["line"]["name"] | "Unknown";
         String direction = firstLeg["direction"] | "Unknown";
-        const char *depTime = firstLeg["departure"] | firstLeg["plannedDeparture"];
+        const char *depTime = firstLeg["departure"];
         if (!depTime)
             continue;
 
@@ -93,15 +93,6 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
             // Create message and add to result
             result.departures[result.count] = makeJourneyMessage(lineName, direction, diff_minutes);
             result.count++;
-
-            // Debug print
-            /* Serial.print("Journey " + lineName + " to " + direction + ": ");
-            if (diff_minutes == 0)
-                Serial.println("NOW");
-            else if (diff_minutes == 1)
-                Serial.println("1 min");
-            else
-                Serial.printf("%d mins\n", diff_minutes); */
         }
     }
 
@@ -110,18 +101,21 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
 String StationInfo::makeJourneyMessage(String lineName, String direction, int diffMinutes)
 {
+    uint8_t lineLength = 3;
+    uint8_t directionLength = 13;
+    uint8_t timeLength = 2;
     String message = "";
-    message += cutString(lineName, 3);
+    message += cutString(lineName, lineLength);
     message += " ";
     String cleanDirection = cleanStationName(direction);
-    message += cutString(cleanDirection, 13);
+    message += cutString(cleanDirection, directionLength);
     message += " ";
     String timeDisplay = formatTimeDisplay(diffMinutes);
-    message += cutString(timeDisplay, 2);
+    message += cutString(timeDisplay, timeLength);
     return message;
 }
 
-String StationInfo::cutString(String input, int maxLength)
+String StationInfo::cutString(String input, uint8_t maxLength)
 {
     String lengthCheck = input;
     lengthCheck.replace("ü", "u");
@@ -168,14 +162,16 @@ String StationInfo::cutString(String input, int maxLength)
 String StationInfo::cleanStationName(String stationName)
 {
     stationName = removeParentheses(stationName);
+    uint8_t stationPrefixLong = 4;  // "S+U " is the longest prefix
+    uint8_t stationPrefixShort = 2; // "S " or "U "
 
     if (stationName.startsWith("S+U "))
     {
-        return stationName.substring(4);
+        return stationName.substring(stationPrefixLong);
     }
     else if (stationName.startsWith("S ") || stationName.startsWith("U "))
     {
-        return stationName.substring(2);
+        return stationName.substring(stationPrefixShort);
     }
     return stationName;
 }
@@ -201,6 +197,9 @@ String StationInfo::removeParentheses(String input)
 
 String StationInfo::formatTimeDisplay(int minutes)
 {
+    uint16_t maxDisplayMinutes = 99;
+    uint8_t doubleDigitThreshold = 10;
+
     if (minutes == 0)
     {
         return "JZ";
@@ -209,11 +208,11 @@ String StationInfo::formatTimeDisplay(int minutes)
     {
         return "??";
     }
-    else if (minutes >= 100)
+    else if (minutes > maxDisplayMinutes)
     {
         return "ZL";
     }
-    else if (minutes < 10)
+    else if (minutes < doubleDigitThreshold)
     {
         return " " + String(minutes);
     }

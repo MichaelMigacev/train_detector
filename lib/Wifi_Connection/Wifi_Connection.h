@@ -8,18 +8,18 @@ public:
     void setupWiFi(
         const char *ssid,
         const char *password,
-        int connectionAttempts,
-        int maxAttempts);
+        uint8_t connectionAttempts,
+        uint8_t maxAttempts);
     void connectToWiFi(
         const char *ssid,
         const char *password,
-        int connectionAttempts,
-        int maxAttempts);
+        uint8_t connectionAttempts,
+        uint8_t maxAttempts);
     void maintainWiFi(
         const char *ssid,
         const char *password,
-        int connectionAttempts,
-        int maxAttempts,
-        const long checkInterval);
+        uint8_t connectionAttempts,
+        uint8_t maxAttempts,
+        const uint32_t checkInterval);
     void printConnectionDetails();
 };

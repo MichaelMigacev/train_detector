@@ -8,8 +8,6 @@ class LCDInteractions
 {
 public:
     void setupLCD();
-    void printLine(uint8_t row, String text);
-    void clearLine(uint8_t row);
     void displayDepartures(const String departures[], uint8_t count);
     void printLCDMessages(String lcdMessage1, String lcdMessage2, String lcdMessage3, String lcdMessage4);
 
@@ -18,4 +16,6 @@ private:
     void createCustomCharacters();
     String replaceUmlauts(String input);
     void printWithCustomChars(uint8_t row, String text);
+    void printLine(uint8_t row, String text);
+    void clearLine(uint8_t row);
 };

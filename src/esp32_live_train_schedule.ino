@@ -77,8 +77,6 @@ void loop()
 
   currentMillis = millis();
 
-  bool reading = digitalRead(LEVER_PIN);
-
   if (currentMillis - previousMillis >= trainsUpdateInterval)
   {
     previousMillis = currentMillis;
@@ -87,6 +85,8 @@ void loop()
     DepartureList departures = statInf.getSouthboundJourneys(myStartStation, myEndStation);
     lcdInt.displayDepartures(departures.departures, departures.count);
   }
+
+  bool reading = digitalRead(LEVER_PIN);
 
   if (reading != lastLeverState)
   {

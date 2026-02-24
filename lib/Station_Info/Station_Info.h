@@ -14,8 +14,6 @@ class StationInfo
 {
 public:
     DepartureList getSouthboundJourneys(String fromStation, String toStation);
-    // String cutString(String input, int maxLength);
-    // String makeJourneyMessage(String lineName, String direction, int diffMinutes);
 
 private:
     DepartureList parseJourneys(String jsonResponse);

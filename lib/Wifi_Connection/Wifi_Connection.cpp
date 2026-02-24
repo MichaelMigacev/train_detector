@@ -54,7 +54,7 @@ void WiFiConnection::connectToWiFi(
     uint32_t startTime = millis();
     bool connected = false;
 
-    while (millis() - startTime < 15000)
+    while (millis() - startTime < timeout_interval)
     { // 15 second timeout
         if (WiFi.status() == WL_CONNECTED)
         {

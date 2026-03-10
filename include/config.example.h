@@ -11,8 +11,8 @@ const int maxAttempts = 5;
 
 // Current Time
 const char *ntpServer = "de.pool.ntp.org";
-const long gmtOffset_sec = 3600;
-const int daylightOffset_sec = 3600;
+// Berlin timezone with automatic summer/winter time switching
+const char *tzInfo = "CET-1CEST,M3.5.0/2,M10.5.0/3";
 
 // From and To Stations for one Station Trip
 String fromStation = "INSERT_FROM_STATION_ID";

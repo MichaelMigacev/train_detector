@@ -52,6 +52,8 @@ DepartureList StationInfo::parseJourneys(String jsonResponse)
 
     time_t now;
     time(&now);
+    Serial.print("Current time: ");
+    Serial.print(asctime(&timeinfo));
 
     // Extract journeys array (different from departures!)
     JsonArray journeys = doc["journeys"].as<JsonArray>();

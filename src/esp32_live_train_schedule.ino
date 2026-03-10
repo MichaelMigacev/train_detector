@@ -48,7 +48,7 @@ void setup()
       maxAttempts);
 
   // init and get time
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+  configTzTime(tzInfo, ntpServer);
 
   pinMode(LEVER_PIN, INPUT_PULLUP); // Internal pull-up
 
@@ -83,6 +83,11 @@ void loop()
 
     // Get departures
     DepartureList departures = statInf.getSouthboundJourneys(myStartStation, myEndStation);
+    for (uint8_t i = 0; i < LCD_ROWS; i++)
+    {
+      Serial.println(departures.departures[i]);
+    }
+    Serial.println(departures.count);
     lcdInt.displayDepartures(departures.departures, departures.count);
   }
 
@@ -109,6 +114,11 @@ void loop()
         myEndStation = toStation;
       }
       DepartureList departures = statInf.getSouthboundJourneys(myStartStation, myEndStation);
+      for (uint8_t i = 0; i < LCD_ROWS; i++)
+      {
+        Serial.println(departures.departures[i]);
+      }
+      Serial.println(departures.count);
       lcdInt.displayDepartures(departures.departures, departures.count);
     }
   }
